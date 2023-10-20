@@ -1,0 +1,59 @@
+services:
+  main:
+    image: docker.io/yugabytedb/yugabyte:latest
+    entrypoint: |
+      bash -c '
+      mkdir -p /var/lib/yugabytedb # initialization scripts
+      echo "create database $${POSTGRES_DB:-$${POSTGRES_USER}}" > /var/lib/yugabytedb/01-db.sql
+      bin/yugabyted start --daemon=false --initial_scripts_dir=/var/lib/yugabytedb
+      '
+    ports:
+      - 7000:7000
+      - 9000:9000
+      - 5433:5433
+      - 9042:9042
+      - 15433:15433
+    environment:
+      - POSTGRES_DB=testdb
+      - POSTGRES_PASSWORD=password
+    networks:
+      - common_network
+
+  cluster1:
+    image: docker.io/yugabytedb/yugabyte:latest
+    entrypoint:
+      - "/bin/bash"
+      - "-c"
+      - >
+        until echo > /dev/tcp/main/5433 ; do
+         echo "Waiting for YugabyteDB to be up..." ; sleep 5 ;
+        done; /home/yugabyte/bin/yugabyted start --daemon=false --join=main
+    networks:
+      - common_network
+
+  cluster2:
+    image: docker.io/yugabytedb/yugabyte:latest
+    entrypoint:
+      - "/bin/bash"
+      - "-c"
+      - >
+        until echo > /dev/tcp/main/5433 ; do
+         echo "Waiting for YugabyteDB to be up..." ; sleep 5 ;
+        done; /home/yugabyte/bin/yugabyted start --daemon=false --join=main
+    networks:
+      - common_network
+
+  cluster3:
+    image: docker.io/yugabytedb/yugabyte:latest
+    entrypoint:
+      - "/bin/bash"
+      - "-c"
+      - >
+        until echo > /dev/tcp/main/5433 ; do
+         echo "Waiting for YugabyteDB to be up..." ; sleep 5 ;
+        done; /home/yugabyte/bin/yugabyted start --daemon=false --join=main
+    networks:
+      - common_network
+networks:
+  common_network:
+    driver: bridge
