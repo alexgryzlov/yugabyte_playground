@@ -11,3 +11,8 @@ start_cluster_log_docdb_writes:
 .PHONY: destroy
 destroy:
 	yb-ctl destroy --data_dir=$(DATA_DIR)
+
+.PHONY: test
+test:
+	poetry run pytest
+
