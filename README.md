@@ -1,5 +1,11 @@
 # yugabyte_playground
 
+## Установка
+
+1. [yugabyte](https://docs.yugabyte.com/preview/quick-start/linux/)
+2. [poetry](https://python-poetry.org/docs/#installation)
+3. poetry install
+
 ## Чтение SSTable
 По умолчанию строки складываются на диск в компактном формате, за это отвечает флаг TServer'а ysql_enable_packed_row.
 
