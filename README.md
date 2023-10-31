@@ -59,9 +59,56 @@ Sst file format: block-based
 SubDocKey(DocKey(0x152c, ["Sw"], [EncodedSubDocKey(DocKey(0xb1f1, ["Geneva"], []), [])]), [SystemColumnId(0); HT{ physical: 1698333824777313 }]) -> null
 ```
 
+Так же можно посмотреть содержимое IntentsDB, зафлашив таблицу до того, как транзакция была закоммичена. Для просмотра IntentsDB необходим флаг output_format=decoded_intentsdb
+```
+Sst file format: block-based
+SubDocKey(DocKey([], []), []) [kWeakRead, kWeakWrite] HT{ physical: 1698773324277400 w: 4 } -> TransactionId(f3e60244-170e-49ef-b361-861f55301f28) none
+SubDocKey(DocKey(0xc0c4, [2], []), []) [kWeakRead, kWeakWrite] HT{ physical: 1698773324277400 w: 3 } -> TransactionId(f3e60244-170e-49ef-b361-861f55301f28) none
+SubDocKey(DocKey(0xc0c4, [2], ["second"]), []) [kWeakRead, kWeakWrite] HT{ physical: 1698773324277400 w: 2 } -> TransactionId(f3e60244-170e-49ef-b361-861f55301f28) none
+SubDocKey(DocKey(0xc0c4, [2], ["second"]), [SystemColumnId(0)]) [kStrongRead, kStrongWrite] HT{ physical: 1698773324277400 } -> TransactionId(f3e60244-170e-49ef-b361-861f55301f28) WriteId(0) null
+SubDocKey(DocKey(0xc0c4, [2], ["second"]), [ColumnId(2)]) [kStrongRead, kStrongWrite] HT{ physical: 1698773324277400 w: 1 } -> TransactionId(f3e60244-170e-49ef-b361-861f55301f28) WriteId(1) "sample data"
+TXN META f3e60244-170e-49ef-b361-861f55301f28 -> { transaction_id: f3e60244-170e-49ef-b361-861f55301f28 isolation: SNAPSHOT_ISOLATION status_tablet: 07c0d974865b4e4eb724fe4666a956a1 priority: 11251738716710026248 start_time: { physical: 1698773324266943 } locality: GLOBAL old_status_tablet: }
+TXN REV f3e60244-170e-49ef-b361-861f55301f28 HT{ physical: 1698773324277400 } -> SubDocKey(DocKey(0xc0c4, [2], ["second"]), [SystemColumnId(0)]) [kStrongRead, kStrongWrite] HT{ physical: 1698773324277400 }
+TXN REV f3e60244-170e-49ef-b361-861f55301f28 HT{ physical: 1698773324277400 w: 1 } -> SubDocKey(DocKey(0xc0c4, [2], ["second"]), [ColumnId(2)]) [kStrongRead, kStrongWrite] HT{ physical: 1698773324277400 w: 1 }
+TXN REV f3e60244-170e-49ef-b361-861f55301f28 HT{ physical: 1698773324277400 w: 2 } -> SubDocKey(DocKey(0xc0c4, [2], ["second"]), []) [kWeakRead, kWeakWrite] HT{ physical: 1698773324277400 w: 2 }
+TXN REV f3e60244-170e-49ef-b361-861f55301f28 HT{ physical: 1698773324277400 w: 3 } -> SubDocKey(DocKey(0xc0c4, [2], []), []) [kWeakRead, kWeakWrite] HT{ physical: 1698773324277400 w: 3 }
+TXN REV f3e60244-170e-49ef-b361-861f55301f28 HT{ physical: 1698773324277400 w: 4 } -> SubDocKey(DocKey([], []), []) [kWeakRead, kWeakWrite] HT{ physical: 1698773324277400 w: 4 }
+```
+
+### Полный пример
+```
+$ export TSERVER_FLAGS="--ysql_enable_packed_row=false" && make start_docker
+$ psql --host=localhost --port=5433 --username=yugabyte --dbname=postgres
+psql# create table example(id1 INTEGER NOT NULL, id2 TEXT, data TEXT, PRIMARY KEY(id1, id2));
+psql# insert into example values (1, "first", "sample data");
+$ docker-compose -f docker/docker-compose.yml exec yb-tserver-n1 yb-admin -init_master_addrs=yb-master-n1:7100,yb-master-n2 list_tables include_table_id | grep example
+
+postgres.example 000033f3000030008000000000004000
+
+$ docker-compose -f docker/docker-compose.yml exec yb-tserver-n1 yb-admin -init_master_addrs=yb-master-n1,yb-master-n2,yb-master-n3 flush_table_by_id 000033f3000030008000000000004000
+
+$ cd .yugabyte_data/yb-tserver-n1/yb-data/tserver/data/rocksdb/table-000033f3000030008000000000004000 
+$ find . -name "*.sst"
+
+./tablet-c2016b2f09ab48a18d343636a91aa580/000010.sst
+
+$ cd tablet-c2016b2f09ab48a18d343636a91aa580
+$ sst_dump --command=scan --file=. --output_format=decoded_regulardb
+
+psql# begin transaction;
+psql# insert into example values (2, 'second', 'sample data');
+
+... flush table and find relevant tablet ...
+
+$ cd tablet-eca8da23ea07484baf418eb190778436.intents
+$ sst_dump --command=scan --file=. --output_format=decoded_intentsdb
+```
+
+
 ### Ссылки
 1. [Описание формата хранения строк в виде документов внутри DocDB](https://docs.yugabyte.com/preview/architecture/docdb/persistence/#primary-key-columns)
-2. [Документация к yb-admin](https://docs.yugabyte.com/preview/admin/yb-admin/#list-tables)
+2. [DocKey vs SubDocKey](https://github.com/yugabyte/yugabyte-db/wiki/Low-level-DocDB-key-encoding-format)
+3. [Документация к yb-admin](https://docs.yugabyte.com/preview/admin/yb-admin/#list-tables)
 
 ## Распределенные транзакции 
 Для поддержания распределенных транзакций (таких транзакций, которые затрагивают более одного шарда таблицы), Yugabyte поддерживает две разных DocDB: RegularDB для уже закоммиченных данных и IntentsDB для поддержания промежуточного состояния транзакций.
