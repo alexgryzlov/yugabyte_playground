@@ -1,14 +1,36 @@
+
 # yugabyte_playground
 
 ## Установка
-
-1. [yugabyte](https://docs.yugabyte.com/preview/quick-start/linux/)
+ 
+1. [yugabyte](https://docs.yugabyte.com/preview/quick-start/linux/) / docker-compose
 2. [poetry](https://python-poetry.org/docs/#installation)
 3. poetry install
 
-## Чтение SSTable
-По умолчанию строки складываются на диск в компактном формате, за это отвечает флаг TServer'а ysql_enable_packed_row.
+## Запуск
+Для локального запуска/завершения кластера из 3-х нод:
+```
+$ make start_local
+$ make destroy_local
+```
 
+Для запуска/завершения кластера из 3-х нод, используя docker-compose, где destroy так же удаляет все volume'ы.
+```
+$ make start_docker
+$ make down_docker
+$ make destroy_docker
+```
+
+При помощи переменной окружения можно контроллировать флаги tserver'а:
+```
+$ export TSERVER_FLAGS="..." && make start_docker
+```
+
+Полезные флаги:
+	- TEST_docdb_log_write_batches - логировать все записи в DocDB
+	- ysql_enable_packed_row=false - отключить [packed row format](https://docs.yugabyte.com/preview/architecture/docdb/persistence/#packed-row-format), удобно для просмотра SSTable'ов
+
+## Чтение SSTable
 Зафлашить SST на диск:
 ```console
 > yb-admin -init_master_addrs=localhost:7100 flush_table_by_id <table_id>
@@ -55,7 +77,7 @@ psql# create table cities (name text primary key, country text);
 
 Single-shard транзакция (fast-path)
 ```
-psql# insert into cities values ('Geneva','Switzerland')
+psql# insert into cities values ('Geneva','Switzerland');
 
 I1026 15:51:02.350379 26977 tablet.cc:1456] T 1b095ad181804b51a0e560d75d67e6bf P 0a50692371d2442699c8b53810f58fc7: Wrote 2 key/value pairs to kRegular RocksDB:
   T 1b095ad181804b51a0e560d75d67e6bf P 0a50692371d2442699c8b53810f58fc7 [R]: 1. PutCF: SubDocKey(DocKey(0xb1f1, ["Geneva"], []), [SystemColumnId(0); HT{ physical: 1698335462341012 }]) => null
