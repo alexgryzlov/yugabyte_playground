@@ -41,7 +41,7 @@ services:
         /home/yugabyte/bin/yb-tserver --tserver_master_addrs=yb-master-n1:7100,yb-master-n2:7100,yb-master-n3:7100 \
         --rpc_bind_addresses=yb-tserver-n1:9100 --memory_limit_hard_bytes=1073741824 \
         --pgsql_proxy_bind_address yb-tserver-n1:5433 \
-        --fs_data_dirs=/home/yugabyte/base_dir --ysql_num_shards_per_tserver=2
+        --fs_data_dirs=/home/yugabyte/base_dir --ysql_num_shards_per_tserver=2 ${TSERVER_FLAGS}
       '
     ports:
       - 9000:9000
@@ -58,7 +58,7 @@ services:
         /home/yugabyte/bin/yb-tserver --tserver_master_addrs=yb-master-n1:7100,yb-master-n2:7100,yb-master-n3:7100 \
         --rpc_bind_addresses=yb-tserver-n2:9100 --memory_limit_hard_bytes=1073741824 \
         --pgsql_proxy_bind_address yb-tserver-n2:5433 \
-        --fs_data_dirs=/home/yugabyte/base_dir --ysql_num_shards_per_tserver=2
+        --fs_data_dirs=/home/yugabyte/base_dir --ysql_num_shards_per_tserver=2 ${TSERVER_FLAGS}
       '
     volumes:
       - ../.yugabyte_data/yb-tserver-n2:/home/yugabyte/base_dir
@@ -70,7 +70,7 @@ services:
         /home/yugabyte/bin/yb-tserver --tserver_master_addrs=yb-master-n1:7100,yb-master-n2:7100,yb-master-n3:7100 \
         --rpc_bind_addresses=yb-tserver-n3:9100 --memory_limit_hard_bytes=1073741824 \
         --pgsql_proxy_bind_address yb-tserver-n3:5433 \
-        --fs_data_dirs=/home/yugabyte/base_dir --ysql_num_shards_per_tserver=2
+        --fs_data_dirs=/home/yugabyte/base_dir --ysql_num_shards_per_tserver=2 ${TSERVER_FLAGS}
       '
     volumes:
       - ../.yugabyte_data/yb-tserver-n3:/home/yugabyte/base_dir
