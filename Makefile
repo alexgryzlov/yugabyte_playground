@@ -1,9 +1,9 @@
 DATA_DIR := $(shell pwd)/.yugabyte_data
-DOCKER_COMPOSE := docker-compose -f "$(shell pwd)/docker/docker-compose.yml"
+DOCKER_COMPOSE := docker-compose -f "$(shell pwd)/docker/docker-compose.test.yml"
 
 .PHONY: start_local
 start_local:
-	yb-ctl start --replication_factor=3 --data_dir=${DATA_DIR} --tserver_flags "${TSERVER_FLAGS}"
+	yb-ctl start --replication_factor=1 --data_dir=${DATA_DIR} --tserver_flags "${TSERVER_FLAGS}"
 
 .PHONY: destroy_local
 destroy_local:

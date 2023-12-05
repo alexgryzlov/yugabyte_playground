@@ -5,7 +5,7 @@ services:
       bash -c '
         /home/yugabyte/bin/yb-master --replication_factor=3 --master_addresses=yb-master-n1:7100,yb-master-n2:7100,yb-master-n3:7100 \
         --rpc_bind_addresses=yb-master-n1:7100 --fs_data_dirs=/home/yugabyte/base_dir \
-        --ysql_num_shards_per_tserver=2
+        --ysql_num_shards_per_tserver=2 ${MASTER_FLAGS}
       '
     ports:
       - 7000:7000

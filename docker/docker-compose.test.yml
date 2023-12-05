@@ -1,0 +1,30 @@
+services:
+  yb-master-n1:
+    image: yugabyte-custom:latest
+    entrypoint: |
+      bash -c '
+        /home/yugabyte/bin/yb-master --replication_factor=1 --master_addresses=yb-master-n1:7100 \
+        --rpc_bind_addresses=yb-master-n1:7100 --fs_data_dirs=/home/yugabyte/base_dir \
+        --ysql_num_shards_per_tserver=2 ${MASTER_FLAGS}
+      '
+    ports:
+      - 7000:7000
+    volumes:
+      - ../.yugabyte_data/yb-master-n1:/home/yugabyte/base_dir
+
+  yb-tserver-n1:
+    image: yugabyte-custom:latest
+    entrypoint: |
+      bash -c '
+        /home/yugabyte/bin/yb-tserver --tserver_master_addrs=yb-master-n1:7100 \
+        --rpc_bind_addresses=yb-tserver-n1:9100 --memory_limit_hard_bytes=1073741824 \
+        --pgsql_proxy_bind_address yb-tserver-n1:5433 \
+        --fs_data_dirs=/home/yugabyte/base_dir --ysql_num_shards_per_tserver=2 ${TSERVER_FLAGS}
+      '
+    ports:
+      - 9000:9000
+      - 9042:9042
+      - 6379:6379
+      - 5433:5433
+    volumes:
+      - ../.yugabyte_data/yb-tserver-n1:/home/yugabyte/base_dir
