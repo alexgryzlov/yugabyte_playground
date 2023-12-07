@@ -27,8 +27,23 @@ $ export TSERVER_FLAGS="..." && make start_docker
 ```
 
 Полезные флаги:
-	- TEST_docdb_log_write_batches - логировать все записи в DocDB
-	- ysql_enable_packed_row=false - отключить [packed row format](https://docs.yugabyte.com/preview/architecture/docdb/persistence/#packed-row-format), удобно для просмотра SSTable'ов
+- TEST_docdb_log_write_batches - логировать все записи в DocDB
+- ysql_enable_packed_row=false - отключить [packed row format](https://docs.yugabyte.com/preview/architecture/docdb/persistence/#packed-row-format), удобно для просмотра SSTable'ов
+
+Запустить тесты с инструментацией и объединить RPC вызовы по PG запросам:
+```
+$ make start_with_instrumentation
+$ make collect_test_rpcs
+```
+
+## Работа с кодом yugabyte
+Необходимые для сборки yugabyte из исходных файлов [зависимости](https://docs.yugabyte.com/preview/contribute/core-database/build-from-src-almalinux/) собраны в [Dockerfile'е](docker/Dockerfile.dev). Все дальнейшие команды необходимо запускать из корня репозитория yugabyte.
+
+Для сборки исходного кода: `./yb_build.sh release`.
+
+Для сборки релизного пакета: `./yb_release`.
+
+Для создания docker image'а после сборки релизного пакета: `./docker/images/build_docker.sh -f <package path>`
 
 ## Чтение SSTable
 Зафлашить SST на диск:
