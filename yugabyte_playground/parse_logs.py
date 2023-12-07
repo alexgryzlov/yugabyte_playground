@@ -133,7 +133,6 @@ def replace_ids_with_names(master_log_path, rpc_trace: dict[PgStatement, list[RP
         for rpc in rpcs:
             table_id = re.search(r"table_id: \"([a-z0-9]+)\"", rpc.payload)
             if table_id is not None and table_id.group(1) in table_names.keys():
-                print(table_id.group(1), table_names[table_id.group(1)])
                 rpc.payload = re.sub(table_id.group(1), table_names[table_id.group(1)], rpc.payload)
                 
 
@@ -155,6 +154,7 @@ if __name__ == "__main__":
 
     DUMP_DIR = Path("rpc_dumps")
     DUMP_DIR.mkdir(parents=True, exist_ok=True)
+    print(f"Found {len(rpc_trace)} PG statements. Dumping to {DUMP_DIR}")
 
     for i, (pg_statement, rpcs) in enumerate(rpc_trace.items()):
         rpcs.sort(key=lambda rpc: rpc.timestamp)
