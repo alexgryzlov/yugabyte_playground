@@ -1,6 +1,6 @@
 services:
   yb-master-n1:
-    image: yugabyte-custom:latest
+    image: alexgryzlov/yugabyte_playground:latest
     entrypoint: |
       bash -c '
         /home/yugabyte/bin/yb-master --replication_factor=1 --master_addresses=yb-master-n1:7100 \
@@ -13,7 +13,7 @@ services:
       - ../.yugabyte_data/yb-master-n1:/home/yugabyte/base_dir
 
   yb-tserver-n1:
-    image: yugabyte-custom:latest
+    image: alexgryzlov/yugabyte_playground:latest
     entrypoint: |
       bash -c '
         /home/yugabyte/bin/yb-tserver --tserver_master_addrs=yb-master-n1:7100 \
