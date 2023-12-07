@@ -1,0 +1,15 @@
+# https://docs.yugabyte.com/preview/contribute/core-database/build-from-src-almalinux/
+
+FROM almalinux:8
+
+RUN \
+    dnf update -y && \
+    dnf groupinstall -y 'Development Tools' && \
+    dnf -y install epel-release libatomic rsync python39 cmake3 java-1.8.0-openjdk maven openssh-server npm golang
+
+RUN \
+    latest_zip_url=$(curl -Ls "https://api.github.com/repos/ninja-build/ninja/releases/latest" \
+                 | grep browser_download_url | grep ninja-linux.zip | cut -d \" -f 4) && \
+    curl -Ls "$latest_zip_url" | zcat | tee /usr/local/bin/ninja >/dev/null && \
+    chmod +x /usr/local/bin/ninja
+
