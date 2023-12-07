@@ -1,5 +1,6 @@
 import pytest
 import psycopg2
+import time
 
 from datetime import datetime
 
@@ -53,6 +54,12 @@ def connection(exercises_database, clubdata_ddl, clubdata_data):
         ...
     finally:
         conn.close()
+
+
+@pytest.fixture(autouse=True)
+def slow_down_tests():
+    yield
+    time.sleep(1)
 
 
 def test_basic_1(connection):

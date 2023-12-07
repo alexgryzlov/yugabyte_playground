@@ -160,3 +160,4 @@ cython_debug/
 #.idea/
 
 .yugabyte_data/
+rpc_dumps/
