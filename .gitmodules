@@ -1,0 +1,3 @@
+[submodule "yugabyte-db"]
+	path = yugabyte-db
+	url = git@github.com:alexgryzlov/yugabyte-db.git
